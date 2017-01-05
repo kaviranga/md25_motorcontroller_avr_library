@@ -17,6 +17,10 @@
 
 #include "avrmd25.h"
 
+#define F_SCL 100000UL // SCL frequency
+#define Prescaler 1
+#define TWBR_val ((((F_CPU / F_SCL) / Prescaler) - 16 ) / 2)
+
 unsigned char buffer[10];		// Used to read data from i2c bus
 unsigned long encorder1,encorder2;
 
@@ -99,7 +103,7 @@ void setup(void)
 	TCCR1A = 0x00;			// Set timer up in CTC mode
 	TCCR1B = 0x08;
 	
-	TWBR = 0x20;			// 100MHz I2C clock frequency
+	TWBR = (uint8_t)TWBR_val;  
 	
 	//UCSRB = 0x18;			// Enable USART receiver and transmitter
 	//UCSRC = 0x8E;			// Asynchronous mode, 8 data bits, 2 stop no parity
@@ -124,38 +128,38 @@ void i2c_transmit(char address,char reg,char data)
 
 void i2c_receive(char address, char regRead,char byteCount)
 {
-	unsigned char x;
+  unsigned char x;
 
-	TWCR = 0xA4;                                                  // send a start bit on i2c bus
-	while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-	TWDR = address;                                               // load address of i2c device
-	TWCR = 0x84;                                                  // transmit
-	while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-	TWDR = regRead;                                                   // send register number to read from
-	TWCR = 0x84;                                                  // transmit
-	while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
+	TWCR = 0xA4;                     // send a start bit on i2c bus
+	while(!(TWCR & 0x80));           // wait for confirmation of transmit
+	TWDR = address;                  // load address of i2c device
+	TWCR = 0x84;                     // transmit
+	while(!(TWCR & 0x80));           // wait for confirmation of transmit
+	TWDR = regRead;                  // send register number to read from
+	TWCR = 0x84;                     // transmit
+	while(!(TWCR & 0x80));           // wait for confirmation of transmit
     
 	for(x = 0; x < (byteCount-1); x++)	// Receive data into buffer
 	{
-		TWCR = 0xA4;                                                  // send repeated start bit
-		while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-		TWDR = address+1;                                             // transmit address of i2c device with read bit set
-		TWCR = 0xC4;                                                  // clear transmit interrupt flag
-		while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-		TWCR = 0x84;                                                  // transmit, ack (last byte request)
-		while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-		buffer[x] = TWDR;                                             // and grab the target data
-		TWCR = 0x94;                                                  // send a stop bit on i2c bus
+		TWCR = 0xA4;                    // send repeated start bit
+		while(!(TWCR & 0x80));          // wait for confirmation of transmit
+		TWDR = address+1;               // transmit address of i2c device with read bit set
+		TWCR = 0xC4;                    // clear transmit interrupt flag
+		while(!(TWCR & 0x80));          // wait for confirmation of transmit
+		TWCR = 0x84;                    // transmit, ack (last byte request)
+		while(!(TWCR & 0x80));          // wait for confirmation of transmit
+		buffer[x] = TWDR;               // and grab the target data
+		TWCR = 0x94;                    // send a stop bit on i2c bus
 		//return read_data;
     }
 		
-	TWCR = 0xA4;                                                  // send repeated start bit
-	while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-	TWDR = address+1;                                             // transmit address of i2c device with read bit set
-	TWCR = 0xC4;                                                  // clear transmit interrupt flag
-	while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-	TWCR = 0x84;                                                  // transmit, nack (last byte request)
-	while(!(TWCR & 0x80));                                        // wait for confirmation of transmit
-	buffer[byteCount-1] = TWDR;                                             // and grab the target data
-	TWCR = 0x94;                                                  // send a stop bit on i2c bus
+	TWCR = 0xA4;                      // send repeated start bit
+	while(!(TWCR & 0x80));            // wait for confirmation of transmit
+	TWDR = address+1;                 // transmit address of i2c device with read bit set
+	TWCR = 0xC4;                      // clear transmit interrupt flag
+	while(!(TWCR & 0x80));            // wait for confirmation of transmit
+	TWCR = 0x84;                      // transmit, nack (last byte request)
+	while(!(TWCR & 0x80));            // wait for confirmation of transmit
+	buffer[byteCount-1] = TWDR;       // and grab the target data
+	TWCR = 0x94;                      // send a stop bit on i2c bus
 }
