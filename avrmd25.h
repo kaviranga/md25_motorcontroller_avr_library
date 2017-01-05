@@ -7,9 +7,9 @@
 
 #ifndef MAINMD25_H_
 #define MAINMD25_H_
-#define	MD25	0xB0	// Address of MD25
-#define START_CLK	0x0A				// Ctart clock with 1:8 prescaler
-#define STOP_CLK	0x08				// Stop clock
+#define	MD25	0xB0	              // Address of MD25
+#define START_CLK	0x0A			  // Ctart clock with 1:8 prescaler
+#define STOP_CLK	0x08			  // Stop clock
 
 
 // Prototypes
